@@ -7,9 +7,7 @@ import 'shared/theme/app_theme.dart';
 Future<void> main() async {
   await initializeApp();
   runApp(
-    buildProviderTree(
-      child: GlobalExplorerApp(router: createAppRouter()),
-    ),
+    buildProviderTree(child: GlobalExplorerApp(router: createAppRouter())),
   );
 }
 
