@@ -9,8 +9,9 @@ A Flutter application for Android and iOS that lets you discover geographic data
 1. [Prerequisites](#1-prerequisites)
 2. [API Keys Setup](#2-api-keys-setup)
 3. [Building & Running](#3-building--running)
-4. [Software Architecture](#4-software-architecture)
-5. [Technical Trade-offs & Constraints](#5-technical-trade-offs--constraints)
+4. [Running Tests](#4-running-tests)
+5. [Software Architecture](#5-software-architecture)
+6. [Technical Trade-offs & Constraints](#6-technical-trade-offs--constraints)
 
 ---
 
@@ -109,7 +110,67 @@ dart run build_runner build --delete-conflicting-outputs
 
 ---
 
-## 4. Software Architecture
+## 4. Running Tests
+
+The project includes **65 unit tests** covering all architectural layers — core types, mappers, use cases, BLoCs, and Cubits. Tests run entirely in the Dart VM with no device, emulator, or real network required.
+
+### Run all tests
+
+```bash
+flutter test
+```
+
+### Run with detailed output (see every test name)
+
+```bash
+flutter test --reporter expanded
+```
+
+### Run a specific file
+
+```bash
+flutter test test/features/countries/presentation/bloc/countries_bloc_test.dart
+```
+
+### Run tests matching a name
+
+```bash
+flutter test --name "emits \[loading, success\]"
+```
+
+### Expected result
+
+```
+00:02 +65: All tests passed!
+```
+
+### Test coverage by layer
+
+| Layer | File | Tests |
+|---|---|---|
+| Core — `Result<T>` sealed class | `core/types/result_test.dart` | 8 |
+| Countries — mapper | `features/countries/data/mappers/country_mapper_test.dart` | 6 |
+| Countries — `GetAllCountries` use case | `features/countries/domain/usecases/get_all_countries_test.dart` | 4 |
+| Countries — `GetCountryDetail` use case | `features/countries/domain/usecases/get_country_detail_test.dart` | 4 |
+| Countries — `CountriesBloc` | `features/countries/presentation/bloc/countries_bloc_test.dart` | 7 |
+| Countries — `CountryDetailCubit` | `features/countries/presentation/bloc/country_detail_cubit_test.dart` | 6 |
+| News — mapper + DTO parsing | `features/news/data/mappers/news_article_mapper_test.dart` | 7 |
+| News — `GetCountryNews` use case | `features/news/domain/usecases/get_country_news_test.dart` | 4 |
+| Favorites — `IsFavorite` use case | `features/favorites/domain/usecases/is_favorite_test.dart` | 3 |
+| Favorites — `ToggleFavorite` use case | `features/favorites/domain/usecases/toggle_favorite_test.dart` | 2 |
+| Favorites — `WatchFavorites` use case | `features/favorites/domain/usecases/watch_favorites_test.dart` | 3 |
+| Photos — `SearchHeroPhoto` use case | `features/photos/domain/usecases/search_hero_photo_test.dart` | 3 |
+| Shared — `SplashCubit` | `shared/splash/splash_cubit_test.dart` | 3 |
+
+### Testing approach
+
+- **[`mocktail`](https://pub.dev/packages/mocktail)** — creates mock implementations of repository interfaces and services. Because domain contracts are abstract classes, mocks replace real network and database calls entirely.
+- **[`bloc_test`](https://pub.dev/packages/bloc_test)** — drives BLoC and Cubit events and asserts the exact sequence of emitted states, including debounced search events.
+- All external dependencies (Dio, Drift, `ConnectivityService`) are injected via constructors, so every unit is testable in isolation with no side effects.
+
+---
+
+## 5. Software Architecture
 
 ### Overview
 
@@ -219,7 +280,7 @@ No arrow ever points inward past its layer. The domain layer has zero knowledge 
 
 ---
 
-## 5. Technical Trade-offs & Constraints
+## 6. Technical Trade-offs & Constraints
 
 ### NewsAPI country coverage
 `top-headlines` is filtered by ISO alpha-2 country code (`cca2`). The free developer tier only returns articles for a subset of countries (primarily US, UK, and a few others). For most countries the news section will show "No headlines available." This is a limitation of the NewsAPI free plan — not a bug — and is addressed in the UI with a graceful fallback message.
@@ -241,4 +302,3 @@ The `ConnectivityService` performs a real DNS lookup to verify internet reachabi
 
 ### NewsAPI HTTPS on Android
 NewsAPI requires HTTPS. Android 9+ enforces this by default, so no `network_security_config` is needed. If you target Android 8 or lower, add a `cleartextTrafficPermitted` exception for `newsapi.org`.
-
