@@ -1,0 +1,4 @@
+# Safe defaults for GitHub — add keys here for local runs, or use assets/.env (gitignored).
+# No spaces around =.
+NEWS_API_KEY=
+PEXELS_API_KEY=
